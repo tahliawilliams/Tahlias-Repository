@@ -51,7 +51,8 @@ head(attendance)
 
 What's one thing you notice about the data that might make year-over-year comparisons more complex?
 
-**Answer** DESCRIBE IT HERE
+**Answer** Something that may change the data is that the number of home games isn't always the same each season. If a team hoster fewer games in 2024 than in 2023, their total attendance might appear to have dropped, but that might reflect less oppurtunities for fans to attend. And vise versa, a team that has more home games than another can inflate the year total. 
+
 
 The code to calculate percent change is pretty simple. Remember, with `summarize`, we used `n()` to count things. With `mutate`, we use very similar syntax to calculate a new value using other values in our dataset. So in this case, we're trying to do (new-old)/old, but we're doing it with fields. If we look at what we got when we did `head`, you'll see there's \`2024\` as the new data, and we'll use \`2023\` as the old data. So we're looking at one year. Then, to help us, we'll use arrange again to sort it, so we get the fastest growing school over one year.
 
@@ -77,11 +78,10 @@ attendance |> mutate(
 
 Who had the most growth in 2024 compared to the year before? What could account for that change? And what team(s) are the most interesting here?
 
-**Answer** YOUR ANSWER HERE
-
+**Answer** SMU has the highest change percentage.SMU recently joined the ACC in early 2024 which could explain their boost in attendance. New conference apponents bring more excitment to students and fans. Ohio State is something I find interesting because they are already leading in attendance so it would be cool to find out why.
 ## Back to women's soccer
 
-Let's turn back to the women's soccer match data from this season.
+Let's turn back to the women's soccer match data from this season. 
 
 Import it like this:
 
@@ -93,15 +93,16 @@ Previously we calculated totals for shots attempted and shots on goal for each t
 
 ```{r}
 matches_2025 |> 
-  group_by(REPLACE WITH GROUP_BY) |> 
+  group_by(team) |> 
   summarise(
-    total_on_goal = REPLACE WITH FORMULA,
-    total_goals = REPLACE WITH FORMULA
+    total_on_goal = sum(so_g),
+    total_goals = sum(goals)
   ) |> 
-  mutate(percent = REPLACE WITH FORMULA) |> 
+  mutate(percent = total_goals/total_on_goal *100) |> 
   arrange(desc(percent))
 ```
 
 What stands out to you here? Describe that below. Would you narrow down the results to certain teams based on the data? If so, do that in the code and explain why you did it below. Finally, what's the most interesting result to you that could be a story?
 
-**Answer** YOUR ANSWER HERE
+**Answer** 
+SMU increasing by 68% is something that catchwes my attention, because its not a year over year change. Ohio state and Indiana also have large progrms that have large fan bases so to see that much of an increase in suprising. Something else that is interesting in the conference pattern. The schools with the most growth like SMU, Texas, and Oklahoma are ones that were directly involved in recent conference shifts. THis shows that new match ups and conferences are driving attendance. Colorado State and Central Michigan stand out among non-power five schools. That's unusual to see that large of an increase and would be interesting as to why. I would maybe narrow results to schools that generate the most national attention and focus on attendance shifts that have broader implications. The most interesting story angle would be SMU, which is a program that's historically middle tier, that sees a large increase after joining the ACC which portrays a clear narrative that a new conference = new fans. ANother interesting angle would be Ohio States 50.3% increase. Ohio State already domunates in football attendance, so how did they add that many more people? 
