@@ -138,7 +138,7 @@ players |>
   filter(Team == "Maryland Terrapins Men's")
 ```
 
-**ANSWER** Who do you get as the first result, and what was his trueshooting percentage?
+**ANSWER** Julian Reese, 18.1%
 
 
 So is 100 minutes our level? Here's the truth -- there's not really an answer here. We're picking a cutoff. If you can cite a reason for it and defend it, then it probably works.
@@ -178,7 +178,22 @@ matches_2025 |>
 Now it's your turn: do the same for the 2024 data. Load it from GitHub, then adapt the above code but add an additional filter to restrict the results to Maryland's first six games (the 6th game was on Sept. 1, 2024). You need to put the date value in quotes in this format: 'yyyy-mm-dd'
 
 ```{r}
+matches_2024 <- read_csv("https://raw.githubusercontent.com/dwillis/NCAAWomensSoccerData/main/data/ncaa_womens_soccer_matchstats_2024.csv")
+
+matches_2024 |>
+  filter(team == "Maryland Terrapins, Terps", date <= '2024-09-01')
+maryland_first6_2024 <- maryland_first6_2024 |>
+  arrange(date)
+
+maryland_first6_2024 |>
+  summarise(
+    total_attempts = sum(sh_att),
+    total_on_goal = sum(so_g),
+    percent = (total_on_goal/total_attempts)*100
+  )
 
 ```
 
 **ANSWER** How do the two years compare?
+
+So far Maryland has signifigantly more wins this year. This year, they lost to James Madison while they had a draw in 2024. Maryland has also considerably more shots on goal and goals overall this season, indicating a stronger offensive performance. However, they've picked up more yellow cards which makes me think they have been a more aggressive style of play this season. Overall, Maryland's record has improves alot from last year, and it will be interesting to see how they do the rest of the season.  
