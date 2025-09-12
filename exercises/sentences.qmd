@@ -1,0 +1,194 @@
+---
+title: "sentences.qmd"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+
+# Load 2024 NCAA women's soccer data
+matches_2024 <- read_csv("https://raw.githubusercontent.com/dwillis/NCAAWomensSoccerData/main/data/ncaa_womens_soccer_matchstats_2024.csv")
+
+head(matches_2024)
+
+big10 <- c("Nebraska Huskers", "Iowa Hawkeyes", "Minnesota Golden Gophers", 
+           "Illinois Fighting Illini", "Northwestern Wildcats", "Wisconsin Badgers", 
+           "Indiana Hoosiers", "Purdue Boilermakers", "Ohio St. Buckeyes", 
+           "Michigan Wolverines", "Michigan St. Spartans", "Penn St. Nittany Lions", 
+           "Rutgers Scarlet Knights", "Maryland Terrapins, Terps", 
+           "Southern California Trojans", "UCLA Bruins", "Washington Huskies", 
+           "Oregon Ducks")
+
+swac_teams <- c("Alabama A&M Bulldogs", "Alabama St. Lady Hornets", "Alcorn Lady Braves", 
+                "Ark.-Pine Bluff Lady Lions", "Grambling Lady Tigers", "Jackson St. Lady Tigers", 
+                "Mississippi Val. Devilettes", "Prairie View Lady Panthers", 
+                "Southern U. Lady Jaguars", "Texas Southern Lady Tigers")
+
+acc_teams <- c("Wake Forest Demon Deacons", "Duke Blue Devils", "Notre Dame Fighting Irish", 
+               "Virginia Cavaliers", "Florida St. Seminoles", "Louisville Cardinals", 
+               "Stanford Cardinal", "North Carolina Tar Heels", "Boston College Eagles", 
+               "SMU Mustangs", "Syracuse Orange", "Miami (FL) Hurricanes", 
+               "Clemson Tigers", "Pittsburgh Panthers", "Virginia Tech Hokies", 
+               "NC State Wolfpack", "California Golden Bears")
+
+big_south_teams <- c("UNC Asheville Bulldogs", "Radford Highlanders", "Winthrop Eagles", 
+                     "Presbyterian Blue Hose", "USC Upstate Spartans", "Longwood Lancers", 
+                     "Charleston So. Buccaneers", "Gardner-Webb Runnin' Bulldogs", 
+                     "High Point Panthers")
+
+
+```
+
+You can add options to executable code like this
+
+```{r}
+matches_2024 <- matches_2024 |> 
+  mutate(
+    conference = case_when(
+      team %in% big10 ~ "Big10",
+      team %in% swac_teams ~ "SWAC",
+      team %in% acc_teams ~ "ACC",
+      team %in% big_south_teams ~ "Big South",
+     
+    )
+  )
+
+matches_2024 |> select(team, conference) |> head(20)
+
+```
+
+```{r}
+conference_summary <- matches_2024 |> 
+  group_by(conference) |> 
+  summarise(
+    avg_goals = mean(goals),
+    avg_sog = mean(so_g),
+    avg_sh_att = mean(sh_att),
+    avg_opp_goals = mean(defensive_goals),
+    avg_sog = mean(so_g),
+    avg_opp_sog = mean(defensive_so_g)
+  )
+
+conference_summary
+
+```
+
+```{r}
+ACC_data <- matches_2024 |> 
+  filter(team %in% ACC)
+
+
+  conference_summary <- ACC_data |> 
+  group_by(team) |> 
+  summarise(
+    avg_goals = mean(goals),
+    avg_sog = mean(so_g),
+    avg_sh_att = mean(sh_att),
+    avg_opp_goals = mean(defensive_goals),
+    avg_sog = mean(so_g),
+    avg_opp_sog = mean(defensive_so_g)
+  )
+
+  ACC_data
+
+
+```
+
+```{r}
+Big10_data <- matches_2024 |> 
+  filter(team %in% big10)
+
+ conference_summary <- Big10_data |> 
+  group_by(team) |> 
+  summarise(
+    avg_goals = mean(goals),
+    avg_sog = mean(so_g),
+    avg_sh_att = mean(sh_att),
+    avg_opp_goals = mean(defensive_goals),
+    avg_sog = mean(so_g),
+    avg_opp_sog = mean(defensive_so_g)
+  )
+
+  Big10_data
+```
+
+```{r}
+
+Big_South_data <- matches_2024 |> 
+  filter(team %in% big_south_teams)
+
+ big_south_summary <- Big_South_data |> 
+  group_by(team) |> 
+  summarise(
+    avg_goals = mean(goals),
+    avg_sog = mean(so_g),
+    avg_sh_att = mean(sh_att),
+    avg_opp_goals = mean(defensive_goals),
+    avg_sog = mean(so_g),
+    avg_opp_sog = mean(defensive_so_g)
+  )
+
+big_south_summary
+```
+
+```{r}
+
+SWAC_data <- matches_2024 |> 
+  filter(team %in% big_south_teams)
+
+ SWAC_summary <- SWAC_data |> 
+  group_by(team) |> 
+  summarise(
+    avg_goals = mean(goals),
+    avg_sog = mean(so_g),
+    avg_sh_att = mean(sh_att),
+    avg_opp_goals = mean(defensive_goals),
+    avg_sog = mean(so_g),
+    avg_opp_sog = mean(defensive_so_g)
+  )
+
+SWAC_summary
+```
+
+```{r}
+library(tidyverse)
+
+matches_2024 <- matches_2024 |> 
+  mutate(
+    conference = case_when(
+      team %in% big10 ~ "Big10",
+      team %in% swac_teams ~ "SWAC",
+      team %in% acc_teams ~ "ACC",
+      team %in% big_south_teams ~ "Big South",
+      
+    )
+  )
+
+
+conference_summary <- matches_2024 |> 
+  group_by(conference) |> 
+  summarise(
+    avg_goals = mean(goals),
+    avg_sog = mean(so_g),
+    avg_sh_att = mean(sh_att),
+    avg_opp_goals = mean(defensive_goals),
+    avg_opp_sog = mean(defensive_so_g)
+  )
+
+conference_summary <- conference_summary |> 
+  mutate(
+    perc_diff_goals = (avg_goals - mean(avg_goals)) / mean(avg_goals) * 100,
+    perc_diff_sog = (avg_sog - mean(avg_sog)) / mean(avg_sog) * 100,
+    perc_diff_sh_att = (avg_sh_att - mean(avg_sh_att)) / mean(avg_sh_att) * 100
+  )
+
+conference_summary
+
+```
+
+```{r}
+
+```
+
+Reflection: Power five vs smaller conferences: The ACC and Big10 are performing well in terms of goals, shots on goal, and shot attempts, which is mostly expected from smaller programs. The SWAC stand out with the highest average opponent goals and shots on goal which shows their defense is allowing more scoring chances, but offensively they are taking fewer shots and getting them more on target. Big South has a relatively efficient offense with fewer shots but a higher proportion of shots on goal compared to the other schools. ACC teams, have higher total shots and goals but have lower percentage difference for shots on goal suggesting that their power is a sacrifice for their accuracy. This may show that Power Five conferences play a more aggressive shooting style while smaller conferences might focus on precision. Overall, high total shots does not mean higher efficiency. Additionally, smaller conferences may seem to be more efficient because they take fewer shots but have a higher percentage that hit the target.
