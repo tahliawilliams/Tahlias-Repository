@@ -20,6 +20,20 @@ Let's take a look at this data to see what it contains, using `head` and `glimps
 ```{r}
 head(matches_2025)
 glimpse(matches_2025)
+
+big10 <- c("Nebraska Huskers", "Iowa Hawkeyes", "Minnesota Golden Gophers", "Illinois Fighting Illini", "Northwestern Wildcats", "Wisconsin Badgers", "Indiana Hoosiers", "Purdue Boilermakers", "Ohio St. Buckeyes", "Michigan Wolverines", "Michigan St. Spartans", "Penn St. Nittany Lions", "Rutgers Scarlet Knights", "Maryland Terrapins, Terps", "Southern California Trojans", "UCLA Bruins", "Washington Huskies", "Oregon Ducks")
+
+big10_matches <- matches_2025 |> 
+  filter(team %in% big10)
+```
+```{r}
+matches_2025 |> 
+  summarise(
+    mean_diff = mean(diff),
+    mean_opp_goals = mean(defensive_goals),
+    mean_sog = mean(so_g),
+    mean_opp_sog = mean(defensive_so_g)
+    )
 ```
 
 Now, onto the questions using aggregates, which means `group_by` and `summarize`:
@@ -52,4 +66,39 @@ Now, onto the questions using aggregates, which means `group_by` and `summarize`
 ```
 
 5. What's the most interesting thing you've seen from these questions?
+
+
+
+### Signifigance Tets 
+```{r}
+matches_2024 <- read_csv("https://raw.githubusercontent.com/dwillis/NCAAWomensSoccerData/main/data/ncaa_womens_soccer_matchstats_2024.csv") |> mutate(diff = team_score - opponent_score, total_goals = goals + defensive_goals) |> 
+filter(date < '2024-09-18')
+
+
+matches_2025 <- read_csv("https://raw.githubusercontent.com/dwillis/NCAAWomensSoccerData/main/data/ncaa_womens_soccer_matchstats_2025.csv") |> mutate(diff = team_score - opponent_score, total_goals = goals + defensive_goals)
+
+
+```
+
+t-test 
+
+```{r}
+t.test(matches_2024$total_goals, matches_2025$total_goals)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
