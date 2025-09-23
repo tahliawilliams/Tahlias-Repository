@@ -88,17 +88,126 @@ t.test(matches_2024$total_goals, matches_2025$total_goals)
 
 
 
+## Correlations & Regression 
+
+```{r}
+correlations <- read_csv("https://raw.githubusercontent.com/dwillis/NCAAWomensSoccerData/main/data/ncaa_womens_soccer_matchstats_2024.csv")
 
 
 
+newcorrelations <- correlations |> 
+  mutate(
+    differential = goals - defensive_goals
+    )
+
+
+newcorrelations |> summarise(correlation = cor(differential, fouls, method="pearson"))
+```
+
+
+```{r}
+newcorrelations |> summarise(correlation = cor(differential, yellow_cards, method="pearson"))
+```
+
+```{r}
+fit <- lm(differential ~ fouls, data = newcorrelations)
+summary(fit)
+```
+
+```{r}
+newcorrelations |> 
+  summarise(correlation = cor(differential, so_g, method="pearson"))
+
+
+net <- lm(differential ~ so_g, data = newcorrelations)
+summary(net)
+```
+
+### 2025 Version
+
+```{r}
+correlations <- read_csv("https://raw.githubusercontent.com/dwillis/NCAAWomensSoccerData/main/data/ncaa_womens_soccer_matchstats_2025.csv")
+
+terps25<- correlations |> 
+  filter (team == "Maryland Terrapins, Terps")
+
+newcorrelations <- correlations |> 
+  mutate(
+    differential = goals - defensive_goals
+    )
+```
+```{r}
+newcorrelations |> summarise(correlation = cor(differential, sh_att, method="pearson"))
+
+net <- lm(differential ~ sh_att, data = newcorrelations)
+summary(net)
+
+```
+```{r}
+newcorrelations |> summarise(correlation = cor(differential, points, method="pearson"))
+
+```
+```{r}
+net <- lm(differential ~ points, data = newcorrelations)
+summary(net)
+```
+
+```{r}
+newcorrelations |> summarise(correlation = cor(differential, defensive_so_g, method="pearson"))
 
 
 
+net <- lm(differential ~ defensive_so_g, data = newcorrelations)
+summary(net)
+```
 
 
 
+```{r}
+correlations <- read_csv("https://raw.githubusercontent.com/dwillis/NCAAWomensSoccerData/main/data/ncaa_womens_soccer_matchstats_2025.csv")
 
 
 
+newcorrelations <- correlations |> 
+  mutate(
+    differential = goals - defensive_goals
+    )
+
+terps25<- newcorrelations |> 
+  filter (team == "Maryland Terrapins, Terps")
+```
+```{r}
+
+terps25 |> summarise(correlation = cor(differential, defensive_so_g, method="pearson"))
 
 
+
+```
+
+```{r}
+terps25 |> summarise(correlation = cor(differential, so_g, method="pearson"))
+```
+```{r}
+terps25 |> summarise(correlation = cor(differential, sh_att, method="pearson"))
+
+net <- lm(differential ~ sh_att, data = terps25)
+summary(net)
+
+```
+
+```{r}
+terps25 |> summarise(correlation = cor(differential, defensive_so_g, method="pearson"))
+
+net <- lm(differential ~ defensive_so_g, data = terps25)
+summary(net)
+```
+
+```{r}
+terps25 |> summarise(correlation = cor(differential, defensive_fouls, method="pearson"))
+```
+
+
+
+## Story Pitch 
+
+In the 2025 season, Maryland soccer has had to make or break the chances they create. When the Terps push forward and generate consistent shots, they tend to control matches and put themselves in positions to win. But when the offense stalls, so does the teams momentum.Their defensive stability plays a critical role. The team allowed a high number of opponent shots on goal and paid for it in the final score. In games where Maryland limits opponent opportunities looks drastically different from where breakdowns at the back allow the other teams to dictate play. The model results show that matches where the Terrapins generated a lot of shots on target were the clearest indicators of dominant results. In matches where the opposing team registered many shots on goal, Maryland tended to struggle defensively and the goal differential moved in the opponent’s favor.
