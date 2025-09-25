@@ -1,0 +1,110 @@
+```{r}
+library(tidyverse)
+```
+
+```{r}
+logs <- read_csv("https://dwillis.github.io/sports-data-files/cbblogs1525.csv")
+```
+```{r}
+logs <- logs |> mutate(
+  Differential = TeamScore - OpponentScore, 
+  NetRebounds = TeamTotalRebounds - OpponentTotalRebounds,
+  TurnoverMargin = TeamTurnovers - OpponentTurnovers)
+
+
+
+
+
+rebounds <- lm(Differential ~ NetRebounds, data=logs)
+summary(rebounds)
+
+
+
+model1 <- lm(Differential ~ NetRebounds + TurnoverMargin, data=logs)
+summary(model1)
+```
+
+```{r}
+
+install.packages("Hmisc")
+
+library(Hmisc)
+```
+```{r}
+simplelogs <- logs |> select_if(is.numeric) |> select(-Game) |> select(Differential, NetRebounds, TurnoverMargin, TeamFGPCT, TeamTotalRebounds, OpponentFGPCT, OpponentTotalRebounds)
+
+cormatrix <- rcorr(as.matrix(simplelogs))
+
+cormatrix$r
+```
+```{r}
+model2 <- lm(Differential ~ NetRebounds + TurnoverMargin + TeamFGPCT + OpponentFGPCT, data=logs)
+summary(model2)
+```
+
+```{r}
+logs |> 
+  filter(Team == "Michigan" & Season == '2020-2021' | Team == "Wisconsin" & Season == '2019-2020' | Team == "Michigan State" & Season == '2018-2019' | Team == "Michigan State" & Season == '2017-2018' | Team == 'Illinois' & Season == '2021-2022' | Team == 'Purdue' & Season == '2022-2023' | Team == 'Purdue' & Season == '2023-2024' | Team == "Michigan State" & Season == '2024-2025') |> 
+  summarise(
+    meanNetRebounds = mean(NetRebounds),
+    meanTurnoverMargin = mean(TurnoverMargin),
+    meanTeamFGPCT = mean(TeamFGPCT),
+    meanOpponentFGPCT = mean(OpponentFGPCT)
+  )
+```
+```{r}
+logs <- read_csv("https://dwillis.github.io/sports-data-files/cbblogs1525.csv")
+```
+```{r}
+logs <- logs |> mutate(
+  Differential = TeamScore - OpponentScore,
+  NetRebounds = TeamTotalRebounds - OpponentTotalRebounds,
+  TurnoverMargin = TeamTurnovers - OpponentTurnovers,
+  W_L = if_else(Differential > 0, 1, 0)  # 1 = Win, 0 = Loss
+)
+```
+
+```{r}
+simplelogs <- logs |> select(W_L, NetRebounds, TurnoverMargin, TeamFGPCT,Team3PPCT, OpponentFGPCT, HomeAway, TeamSRS, OpponentSRS)
+
+
+logs <- logs |> mutate(HomeAway = if_else(HomeAway == "Home", 1, 0))
+
+head(logs$W_L)
+
+
+TeamFGPCT <- lm(Differential ~ W_L, data=logs)
+summary(TeamFGPCT)
+
+model3 <- lm(Differential ~ TeamFGPCT + W_L + TurnoverMargin + TeamFGPCT + Team3PPCT + TeamAssists + TeamTotalRebounds + OpponentFGPCT + Opponent3PPCT + OpponentAssists + OpponentTotalRebounds + HomeAway + TeamSRS + OpponentSRS, data=logs)
+summary(model3)
+
+```
+```{r}
+install.packages("Hmisc")
+
+library(Hmisc)
+```
+```{r}
+simplelogs <- logs |> select_if(is.numeric) |> select(-Game) |> select(Differential, W_L, TurnoverMargin, TeamFGPCT, Team3PPCT, TeamAssists, TeamTotalRebounds, OpponentFGPCT, Opponent3PPCT, OpponentAssists, OpponentTotalRebounds, HomeAway, TeamSRS, OpponentSRS,)
+
+cormatrix <- rcorr(as.matrix(simplelogs))
+
+cormatrix$r
+```
+```{r}
+model4 <- lm(Differential ~ W_L + TeamFGPCT + OpponentFGPCT, data=logs)
+summary(model4)
+```
+
+```{r}
+logs |> 
+  filter(Team == "Michigan" & Season == '2020-2021' | Team == "Wisconsin" & Season == '2019-2020' | Team == "Michigan State" & Season == '2018-2019' | Team == "Michigan State" & Season == '2017-2018' | Team == 'Illinois' & Season == '2021-2022' | Team == 'Purdue' & Season == '2022-2023' | Team == 'Purdue' & Season == '2023-2024' | Team == "Michigan State" & Season == '2024-2025') |> 
+  summarise(
+    meanW_L = mean(W_L),
+    meanTurnoverMargin = mean(TurnoverMargin),
+    meanTeamFGPCT = mean(TeamFGPCT),
+    meanOpponentFGPCT = mean(OpponentFGPCT)
+  )
+```
+For this model, I wanted to predict the probability of a team winning a game using both offensive and defensive statistics aswell as context from the game. By predicting the win probability we can answer how likely a team is to win a game given certain stats and conditions. For predictors I used, TeamFGPCT, Team3PPCT, TeamAssists, TeamTotalRebounds, OpponentFGPCT, Oponent3PCT, HomeAway, TeamSRS, OpponentSRS. Offensive and defensice performance are important as they directly influence whether a team wins or not. 
