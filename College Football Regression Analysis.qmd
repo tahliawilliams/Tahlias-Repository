@@ -1,0 +1,55 @@
+---
+title: "College Football Regression Analysis"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+logs <- read_csv("https://dwillis.github.io/sports-data-files/footballlogs1124.csv"q)
+```
+
+```{r}
+logs <- logs |> mutate(
+  PointDifferential = TeamScore - OpponentScore)
+```
+
+```{r}
+fit <- lm(PointDifferential ~ Penalties, data = logs)
+
+summary(fit)
+```
+
+```{r}
+library(dplyr)
+
+logs <- logs |> 
+  mutate(
+    PointDifferential = TeamScore - OpponentScore,
+    TurnoverMargin = TotalTurnovers - DefTotalTurnovers,
+    PenaltyYardsDiff = Penalties - DefPenaltyYds,
+    FumbleDiff = Fumbles - DefFumbles
+  )
+
+
+model <- lm(PointDifferential ~ TurnoverMargin + PenaltyYardsDiff + FumbleDiff, data = logs)
+summary(model)
+
+
+```
+
+```{r}
+close_games <- logs |> 
+  filter((PointDifferential) <= 7)
+close_games <- lm(PointDifferential ~ PenaltyYardsDiff, data = close_games)
+
+close_games_model <- lm(PointDifferential ~ TurnoverMargin + PenaltyYardsDiff + FumbleDiff, data = logs)
+
+summary(close_games)
+summary (close_games_model)
+```
+
+After running the regressions, I can see that penalties have a relationship with point differential, but when we look at other "mistake" data metrics like turnovers and fumble differential it creates a clearer picture. Teams that make more mistakes than their opponents tend to lose by larger margins. In close games, the impact of penalties may be less prominent but turnovers and fumbles push the outcome further. This kind of analysis adds context and depth to game reporting. So instead of saying a team lost because they had more penalities, we can talk about how critical turnovers combined with \_ penalty yards, contributed to a 10 point loss giving the readers a sense of how mistakes influences the outcome
