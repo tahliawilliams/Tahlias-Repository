@@ -1,0 +1,60 @@
+---
+title: "Women's Soccer Residuals"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+matches2025 <- read_csv("https://raw.githubusercontent.com/dwillis/NCAAWomensSoccerData/main/data/ncaa_womens_soccer_matchstats_2025.csv")
+```
+
+```{r}
+matches2025 <- matches2025 |> 
+  mutate(differential = goals - defensive_goals)
+
+goal_model <- lm(differential ~ so_g + corners + sh_att + fouls, data = matches2025) 
+summary(goal_model)
+```
+
+```{r}
+matches2025 <- matches2025 |> 
+  mutate(
+    predicted = predict(goal_model),
+    residuals = differential - predicted
+  )
+
+```
+
+```{r}
+matches2025 |> 
+  arrange(desc(residuals)) |> 
+  select(team, opponent, outcome, differential, predicted, residuals) |> 
+  head(10)
+
+```
+
+```{r}
+matches2025 |> 
+  arrange(residuals) |> 
+  select(team, opponent, outcome, differential, predicted, residuals) |> 
+  head(10)
+
+```
+
+Looking at the outlier games, the largest negative residual shows teams losing by much larger margins than predicted, indicating underperformance. The largest positive residuals highlight teams exceeding expectations, winning by larger margins. These games suggest that while the models can capture general trends, it cant account for outcoems that are influenced by factors outside of statistics.
+
+```{r}
+maryland_residuals <- matches2025 |> 
+  filter(team == "Maryland Terrapins, Terps") |> 
+  arrange(desc(residuals)) 
+head(maryland_residuals, 3)
+
+tail(maryland_residuals, 3)
+
+```
+
+What surprised me most about this analysis is how some Maryland game had results very different from what the model predicted, even when the team's stats seemed solid. For example, the Terps had both over performances and under performances that suggest that factors beyond basic offensive and defensive stats like players and goalkeeper performance, game location can influence outcomes. If I were to write a story I would explore these unexpected results, and highlight games where Maryland exceeded expectations or fell short, and examine the circumstances that led to those outlier performances like weahter, injuries, etc.
