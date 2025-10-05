@@ -1,0 +1,60 @@
+---
+title: "WBB Z-Scores Analysis"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+wbb_data <- read_csv("https://dwillis.github.io/sports-data-files/wbbstats1525.csv")
+```
+
+```{r}
+view (wbb_data)
+
+wbb_per_game <- wbb_data |> 
+  mutate(
+    PTS_per = ForPoints / Games, 
+    REB_per = TotalRebounds / Games,
+    AST_per = Assists / Games,
+    FG3_per = ThreePointMade / Games, 
+    To_per = Turnovers / Games ) |> 
+  select(School, Season, Games, ForPoints, TotalRebounds, Assists, ThreePointMade, Turnovers)
+
+wbb_zscores <- wbb_data |> 
+  group_by(Season) |> 
+  mutate(
+    PTSzscore = as.numeric(scale(PTS_per, center = TRUE, scale = TRUE)),
+    REBzscore = as.numeric(scale(REB_per, center = TRUE, scale = TRUE)),
+    ASTzscore = as.numeric(scale(AST_per, center = TRUE, scale = TRUE)),
+    FG3zscore = as.numeric(scale(FG3_per, center = TRUE, scale = TRUE)),
+    TOzscore = as.numeric(scale(TO_per, center = TRUE, scale = TRUE)),
+    TotalZscore = PTSzscore + REBzscore + ASTzscore + FG3zscore - TOzscore
+  ) |> 
+  ungroup()
+
+```
+
+```{r}
+top_ncaa_zscores <- wbb_zscores |> 
+  arrange(desc(TotalZscore)) |> 
+  select(School, Season, TotalZscore, TOzscore, FG3zscore, ASTzscore, PTSzscore)
+```
+
+Iowa's 2024 team achieved a total z score of 12.4, showing that consistent three point shooting (3.19) and strong assists (ASTzscore 3.26) can elevate a team to high status even with slightly higher turnovers. This suggests a shift in how teams are prioritizing offence in recent seasons. Some of the top schools like Oregon in 2020 had impressive scoring and assist numbers but struggled with turnovers (-2.13), highlighting the fine line between offensive firepower and control, and how turnovers can keep teams from reaching maximum potential.
+
+```{r}
+top_ncaa <- wbb_zscores |> 
+  arrange(desc(TotalZscore)) |> 
+  select(School, Season, TotalZscore)
+```
+
+```{r}
+umd_ncaa <- wbb_zscores |> 
+  filter(School == "Maryland")
+
+```
+
+Over the last decade, Maryland women's basketball has had highs and lows, with 2021 standing out as their strongest season. With a total z score of 10.7, the team dominated in scoring and three pointers, possibly demonstrating how a balanced offense and improved efficiency can produce strong results. We can use the game stats from over the past 10 seasons to look at how Maryland's scoring has fluctuated, but the reliance on three pointers has gradually increased from 2015 to 2025, the team's offensive strategy shifts between inside dominance and long range shooting which could reflect changing rosters and coaches.
+
+\
