@@ -18,17 +18,16 @@ wbb_per_game <- wbb_data |>
     REB_per = TotalRebounds / Games,
     AST_per = Assists / Games,
     FG3_per = ThreePointMade / Games, 
-    To_per = Turnovers / Games ) |> 
-  select(School, Season, Games, ForPoints, TotalRebounds, Assists, ThreePointMade, Turnovers)
+    To_per = Turnovers / Games )
 
-wbb_zscores <- wbb_data |> 
+wbb_zscores <- wbb_per_game |> 
   group_by(Season) |> 
   mutate(
     PTSzscore = as.numeric(scale(PTS_per, center = TRUE, scale = TRUE)),
     REBzscore = as.numeric(scale(REB_per, center = TRUE, scale = TRUE)),
     ASTzscore = as.numeric(scale(AST_per, center = TRUE, scale = TRUE)),
     FG3zscore = as.numeric(scale(FG3_per, center = TRUE, scale = TRUE)),
-    TOzscore = as.numeric(scale(TO_per, center = TRUE, scale = TRUE)),
+    TOzscore = as.numeric(scale(To_per, center = TRUE, scale = TRUE)),
     TotalZscore = PTSzscore + REBzscore + ASTzscore + FG3zscore - TOzscore
   ) |> 
   ungroup()
@@ -58,3 +57,13 @@ umd_ncaa <- wbb_zscores |>
 Over the last decade, Maryland women's basketball has had highs and lows, with 2021 standing out as their strongest season. With a total z score of 10.7, the team dominated in scoring and three pointers, possibly demonstrating how a balanced offense and improved efficiency can produce strong results. We can use the game stats from over the past 10 seasons to look at how Maryland's scoring has fluctuated, but the reliance on three pointers has gradually increased from 2015 to 2025, the team's offensive strategy shifts between inside dominance and long range shooting which could reflect changing rosters and coaches.
 
 \
+
+WBB Z-Score Write up
+
+Baylor basketballs team has experienced a roller coaster of performances over the past decade, with a noticable decline in recent seasons. In 2017 Baylor's team was a powerhouse, ranking second in the nation with an explosive offense that relied heavily on distributing the ball effectively. In 2017, the team averaged 3.8 assists per game, turning their ball povement into 3.5 points per possession and they controlled turnovers well enough to maximize scoring oppurtunities.
+
+However, the following years show to be different. By 2020 and 2021, while the team still generated a good amount of points per game, other key game elements were slipping. Assists declined showing less cohesive ball movement and turnovers crept up slightly, reducing the teams ability to converty oppurtunities. Baylors reliance on three point shooting changed their scoring efficiency.
+
+The decline became more apparent in recent seasons. By 2023 and 2024 Baylor struggled to maintain its high level performance, with assists dropping below 2.0 per game and points per possession dipping aswell. While the team was still making shots from beyond the arc, the lack of consistent ball distrubution and efficient scoring put them at a disadvantage against more balanced opponents. Baylor's offense seems to have lost some of the fluidity and rhythym that had made them difficult to defend a few years prior.
+
+Baylor's trends show how even elite programs can face challenges in success over time.
