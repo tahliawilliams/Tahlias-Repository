@@ -1,0 +1,52 @@
+---
+title: "Volleyball Waffle Chart"
+format: html
+---
+
+```{r}
+library(tidyverse)
+library(waffle)
+
+matches <- read_csv("https://raw.githubusercontent.com/dwillis/NCAAWomensVolleyballData/main/data/ncaa_womens_volleyball_matchstats_2025.csv")
+
+md <- matches |> 
+  filter(team == "Maryland") |> 
+  summarise(
+    kills = sum(kills), 
+    blocks = sum(block_solos + block_assists), 
+    aces = sum(aces), 
+    opponent_errors = sum(errors)
+  )
+
+mi <- matches |>  
+filter(team == "Michigan") |> 
+  summarise(
+    kills = sum(kills), 
+    blocks = sum(block_solos + block_assists), 
+    aces = sum(aces), 
+    opponent_errors = sum(errors)
+  )
+```
+```{r}
+md <- c("kills"=525, "blocks"=216, "aces"=72, "opponent_errors"=247)
+mi <- c("kills"=760, "blocks"=221, "aces"=82, "opponent_errors"=243)
+```
+
+
+
+```{r}
+  waffle(md,
+         rows = 10,
+         title = "Maryland Volleyball: Points by Source",
+         xlab = "1 square = 25 points",
+         colors = c("red", "black", "gold", "gray"))
+```
+```{r}
+  waffle(mi,
+         rows = 10,
+         title = "Michigan Volleyball",
+         xlab = "1 square = 25 points",
+         colors = c("red", "black", "gold", "gray"))
+```
+
+Maryland's offense this season has been heavily driven by kills, which accounted for 525 total points.They also picked up 247 points from opponent errors, showing that forcing mistakes plays a key role in their scoring. Blocks and aces made smaller contributions reflecting a balanced appraoch between defense and pressure. On the other hand, Michigan also relief on kills with 760 showing that they have a more dominant offensive position. Their numbers in blocks and aces were similar to Maryland's but they benefited less from overall opponent errors. 
