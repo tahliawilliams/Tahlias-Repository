@@ -1,0 +1,13 @@
+---
+title: "wbb.qmd"
+format: html
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+logs <- read_csv("https://dwillis.github.io/sports-data-files/wbblogs25.csv")
+```
+
