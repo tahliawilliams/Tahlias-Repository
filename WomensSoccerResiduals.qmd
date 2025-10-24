@@ -18,6 +18,10 @@ matches2025 <- matches2025 |>
 
 goal_model <- lm(differential ~ so_g + corners + sh_att + fouls, data = matches2025) 
 summary(goal_model)
+
+library(devtools)
+
+
 ```
 
 ```{r}
@@ -34,6 +38,10 @@ matches2025 |>
   arrange(desc(residuals)) |> 
   select(team, opponent, outcome, differential, predicted, residuals) |> 
   head(10)
+
+install_github("dwillis/SportsDataTutorials", force=TRUE)
+
+
 
 ```
 

@@ -12,7 +12,7 @@ We'll want to start with 2025 match data, which is located in [this GitHub repos
 
 
 ```{r}
-matches_2025 <- read_csv("https://raw.githubusercontent.com/dwillis/NCAAWomensSoccerData/main/data/ncaa_womens_soccer_matchstats_2025.csv")
+matches_2025 <- read_csv("https://raw.githubusercontent.com/dwillis/NCAAWomensSoccerData/main/data/ncaa_womens_soccer_matchstats_2025.csv") |> mutate(diff = team_score - opponent_score)
 ```
 
 Let's take a look at this data to see what it contains, using `head` and `glimpse`:
@@ -25,6 +25,17 @@ glimpse(matches_2025)
 Now, onto the questions using aggregates, which means `group_by` and `summarize`:
 
 1. How many shots in total has Maryland attempted and how many have been on goal? Calculate a percentage of shots on goal.
+
+```{r}
+matches_2025 |> 
+  #filter(team == "Maryland Terrapins, Terps")
+  group_by(team) |> 
+  summarise(
+    
+    
+  )
+```
+
 
 ```{r}
 ncaa_womens_soccer_playerstats_2024 |>
@@ -66,13 +77,14 @@ first4_games |>
 
 ```{r}
 library(dplyr)
+matches_2025 |> 
+  filter(outcome == "Draw")
+group_by(team) |>
+  summarize (draws = n()) |>
+  filter(draws >=4) |>
+  arrage(desc(draws))
 
 
-draws_sorted <- ncaa_womens_soccer_matchstats_2022 |>
-  filter(outcome == "Draw") |>
-  arrange(team, date)  
-
-draws_sorted
 
 
   
@@ -100,3 +112,49 @@ corner_totals
 
 5. What's the most interesting thing you've seen from these questions?
 Exploring the stats for the NCAA women's soccer teams has been really interesting to me in observing how different teams approach the game and where Maryland stands in comparison. Looking at corner kicks, it really highlughted how much control Maryland has in certain games, showing to have more corners than opponents shows they are consistently creating offensive oppurtunities. Another interesting pattern I learned was the draws. Maryland had a few early on (5 in total) but it was suprising to see several other teams that ended up with even more draws over the whole season. Overall, the numbers and stats proves how the game is strategic and how you are able to start to notice trends that arent obvious just by watching the game. 
+```{r}
+swac_teams <- c("Alabama A&M Bulldogs", "Alabama St. Lady Hornets", "Alcorn Lady Braves", "Ark.-Pine Bluff Lady Lions", "Grambling Lady Tigers", "Jackson St. Lady Tigers", "Mississippi Val. Devilettes", "Prairie View Lady Panthers", "Southern U. Lady Jaguars", "Texas Southern Lady Tigers")
+
+swac_matches <- matches_2025 |> 
+  filter(team %in% swac_teams)
+
+matches_2025 |> 
+  summarise(
+    mean_diff = mean(diff),
+    mean_opp_goals = mean(defensive_goals),
+    mean_sog = mean(so_g),
+    mean_opp_sog = mean(defensive_so_g)
+    )
+
+swac_matches |> 
+  summarise(
+    mean_diff = mean(diff),
+    mean_opp_goals = mean(defensive_goals),
+    mean_sog = mean(so_g),
+    mean_opp_sog = mean(defensive_so_g)
+    )
+big10_matches |> 
+  summarise(
+    mean_diff = mean(diff),
+    mean_opp_goals = mean(defensive_goals),
+    mean_sog = mean(so_g),
+    mean_opp_sog = mean(defensive_so_g)
+    )
+
+big10 <- c("Nebraska Huskers", "Iowa Hawkeyes", "Minnesota Golden Gophers", "Illinois Fighting Illini", "Northwestern Wildcats", "Wisconsin Badgers", "Indiana Hoosiers", "Purdue Boilermakers", "Ohio St. Buckeyes", "Michigan Wolverines", "Michigan St. Spartans", "Penn St. Nittany Lions", "Rutgers Scarlet Knights", "Maryland Terrapins, Terps", "Southern California Trojans", "UCLA Bruins", "Washington Huskies", "Oregon Ducks")
+
+big10_matches <- matches_2025 |> 
+  filter(team %in% big10)
+
+big10_matches |> 
+  group_by(team)|> 
+  summarise(
+    mean_diff = mean(diff),
+    mean_opp_goals = mean(defensive_goals),
+    mean_sog = mean(so_g),
+    mean_opp_sog = mean(defensive_so_g)
+    ) |> 
+  arrange(desc(mean_diff))
+
+```
+

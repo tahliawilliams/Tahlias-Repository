@@ -5,11 +5,7 @@ library(tidyverse)
 ```{r}
 logs <- read_csv("https://dwillis.github.io/sports-data-files/cbblogs1525.csv")
 ```
-```{r}
-logs <- logs |> mutate(
-  Differential = TeamScore - OpponentScore, 
-  NetRebounds = TeamTotalRebounds - OpponentTotalRebounds,
-  TurnoverMargin = TeamTurnovers - OpponentTurnovers)
+
 
 
 
