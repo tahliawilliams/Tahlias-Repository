@@ -343,7 +343,7 @@ penalty_first_downs_clean |>
 
 The scatter plot comparing year by year characteristics shows no strong trend of points. The points are widely scattered around the dash line. This would demonstrate that penalty first downs dont remain consistent year to year for most teams. Factors like coaching changes or rules may explain these changes. Due to the trend line not following a tight correlation, it suggests that penalties alone are not a stable predictor of team performance or winning percentages over time.
 ```{r}
-ncaafb <- data.frame(
+ncaafbd <- data.frame(
   Rank = 1:30,
   Team = c("Penn St", "Texas Tech", "Texas", "Navy", "San Diego St", 
            "Ohio St", "Army", "Michigan", "Old Dominion", "Rice", 
@@ -377,7 +377,7 @@ ncaafb <- data.frame(
 )
 library(ggplot2)
 
-ggplot(ncaafd, aes(x = Conference, y = PFD_perGame_2025, fill = Conference)) +
+ggplot(ncaafbd, aes(x = Conference, y = PFD_perGame_2025, fill = Conference)) +
   geom_col() +
   theme_minimal() +
   coord_flip()
