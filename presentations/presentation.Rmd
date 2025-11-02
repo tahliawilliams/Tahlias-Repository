@@ -2,7 +2,6 @@
 title: "Penalty Yards and Wins: Does Discipline and Mistakes Decide Game Outcomes?"
 author: "Tahlia Williams"
 date: '2025-11-01'
-categories: [lowercaseword, lowercaseword, lowercaseword]
 image: "image.png"
 format: 
   html:
