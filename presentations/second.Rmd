@@ -1,0 +1,48 @@
+---
+title: "Penalty Yards and Wins: Does Discipline and Mistakes Decide Game Outcomes?"
+author: "Tahlia Williams"
+date: '2025-11-01'
+image: "image.png"
+format: 
+  html:
+    code-fold: true
+---
+
+
+
+
+```{r}
+library(nflverse)  
+library(tidyverse)
+library(lubridate)
+library(ggrepel)
+library(scales)
+library(broom)
+set.seed(2025)
+
+
+seasons <- 2018:2024   # adjust as desired
+focus_qbs <- c("Patrick Mahomes", "C.J. Stroud", "Josh Allen", "Tua Tagovailoa", "Brock Purdy")
+
+qb_stats_2023 <- nflreadr::load_player_stats(seasons = 2023, stat_type = "passing")
+
+pbp_2023 <- nflfastR::load_pbp(seasons = 2023)
+
+qb_pbp <- pbp_2023 |> 
+filter(play_type == "pass")
+
+qb_summary <- qb_pbp |> 
+  group_by(passer_player_name) |> 
+  summarise(
+    total_plays = n(),
+    avg_epa = mean(epa, na.rm = TRUE),
+    avg_ypp = mean(yards_gained, na.rm = TRUE),
+    completion_rate = mean(complete_pass, na.rm = TRUE),
+    deep_passes = sum(yards_gained > 20, na.rm = TRUE),
+    ints = sum(interception, na.rm = TRUE)
+  ) |> 
+  filter(total_plays > 100)
+
+
+```
+I’ve loaded 2023 NFL passing stats and play-by-play data for all QBs with less than 100 passing plays. I’ve summarized each QB’s average EPA, yards per play, completion rate, deep passes, and interceptions. I classified QBs into “explosive” (high yards, lots of deep passes) and “consistent” (high completion rate, fewer deep passes). My main challenge is linking these QB styles to team wins, as the current summary lacks a clear connection to outcomes. I plan to add team wins and possibly expand to multiple seasons for stronger analysis.
