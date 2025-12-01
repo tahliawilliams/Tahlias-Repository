@@ -8,10 +8,14 @@ format:
     code-fold: true
 ---
 
+
+
 ## Progress Update 
 Through this work, I've refined my approach to answering my main question of "Do different quaterback styles, explosive vs. consistent, correlate with more wins? 
 
 Originally, I focused on only QB level efficiency stats from 2023 using EPA, YPP, deep passes, completion rate, and interceptions. After getting feedback made it clear that that I needed to incorporate multiple seasons, and, directly connect quarterback statistics to team wins. 
+
+
 
 
 ```{r}
@@ -48,12 +52,16 @@ qb_summary <- qb_pbp |>
 
 
 ```
+
+
 I’ve loaded 2023 NFL passing stats and play-by-play data for all QBs with less than 100 passing plays. I’ve summarized each QB’s average EPA, yards per play, completion rate, deep passes, and interceptions. I classified QBs into “explosive” (high yards, lots of deep passes) and “consistent” (high completion rate, fewer deep passes). My main challenge is linking these QB styles to team wins, as the current summary lacks a clear connection to outcomes. I plan to add team wins and possibly expand to multiple seasons for stronger analysis.
 
 ## What I've Done Since the Last Assignment 
 1. Expanded the data set to multiple seasons by modifying my workflow to allow QB and play by play data across 2018-2024. This will give me a stronger sample to compare styles and avoid overreacting to a season. 
 
 2. Added the missing wins data, based on help from professor I was able to build a game level data set with clear win/loss outcomes. 
+
+
 ```{r}
 games_2023 <- nflreadr::load_schedules(seasons = 2023) |> 
   mutate(
@@ -103,6 +111,8 @@ full_data <- team_wins |>
          total_turnovers = total_ints + total_fumbles)
 ```
 
+
+
 ## Roadblocks Encountered
 Joining team wins from schedules with penalties and QB stats was tricky because team names aren't always consistent. Additionally some teams have zero penalties or QB stats in some seasons lead to NAs. But it might bias result toward teams with more data. Also fumbles aren't directly in passing stats so I had to load rushing stats too to join them. Lastly, correlations are weak, so I'm wondering if penalties and mistakes are more impact in close games. 
 
@@ -112,6 +122,8 @@ Joining team wins from schedules with penalties and QB stats was tricky because 
 I'm planning to use a mix of static and interactive plots to show relationships between discipline, mistakes, and wins. My overall goal is to highlight correlations, show outliers, and allow me to explore the findings. 
 
 I'll make a scatter plot of penalty yards vs win percentage in order to show the negative relationship 
+
+
 
 ```{r}
 library(ggplot2)
@@ -128,10 +140,12 @@ ggplot(full_data, aes(x = total_penalty_yards, y = win_pct, label = team)) +
 
 
 ```
+
+
 This chart will reveal if teams like the Chiefs cluster differently
 
 And, a bar chart of average turnover by win tier will visually confirm if mistakes decrease with wins
-```{r}
+
 full_data |> 
   mutate(win_tier = cut(win_pct, breaks = c(0, 0.4, 0.6, 1), labels = c("Low", "Medium", "High"))) |> 
   group_by(win_tier) |> 
@@ -142,5 +156,6 @@ full_data |>
   geom_bar(stat = "identity", position = "dodge") +
   labs(title = "Average Mistakes by Win Tier", y = "Average Value") +
   theme_minimal()
+
 
 
