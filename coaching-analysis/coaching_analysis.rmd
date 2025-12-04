@@ -41,7 +41,7 @@ cat("Division I records:", sum(coaching$division == "I", na.rm = TRUE), "\n")
 
 **Question for you**: Should we focus only on coaches who became D1 head coaches, or also include those who became head coaches at D2, D3, or other levels? How does this choice affect the story? Does it matter if someone became a D3 head coach vs. stayed in D1 as an assistant?
 
-I think it is best to focys on coaches who ended up as D1 head coaches so the story stays clear and shows the path that lead to the highest level of women's college basketball. Including D2 or D3 head coaches could be interesting, but thats combines different career paths and can make comparisons harder. Being a D3 head coach still shows leadership, and staying in D1 as an assistant usually comes with more prestige. Focusing on D1 head coaches would let us see real patterns and pipelines and you can always end up mentioning lower division paths shortly to show alternative routes. 
+I think it is best to focus on coaches who ended up as D1 head coaches so the story stays clear and shows the path that lead to the highest level of womens college basketball. Including D2 or D3 head coaches could be interesting, but that's combines different career paths and can make comparisons harder. Being a D3 head coach still shows leadership, and staying in D1 as an assistant usually comes with more prestige. Focusing on D1 head coaches would let us see real patterns and pipelines and you can always end up mentioning lower division paths shortly to show alternative routes. 
 
 
 **Your choice** (modify the code below):
@@ -83,7 +83,8 @@ cat("Total positions held by future head coaches:", nrow(future_hc_positions), "
 
 **Question for you**: When looking at which schools produce future head coaches, should we only count their D1 experience, or also their D2/D3/other experience?
 
-I think it depends on the scenario. If we were trying to highlight timelines and pathways to the higest level, it would make sense to only count their Dq experience so that were looking at schools that directly feed into Division I head coaching jobs. Using D2, D3, or other experience can be interesting for context, since it shows how coaches build leadership experiences in those lower divisons, but it can also be unneeded information if were only trying to focus on D1 pathways
+I think it depends on the scenario. If we were trying to highlight timelines and pathways to the highest level, it would make sense to only count their D1 experience so that were looking at schools that directly feed into Division I head coaching jobs. Using D2, D3, or other experience can be interesting for context, since it shows how coaches build leadership experiences in those lower divisions, but it can also be unneeded information if were only trying to focus on D1 pathways
+
 ```{r production-schools}
 # STUDENT DECISION: Modify the division filter
 # Current: Only counting D1 positions
@@ -126,8 +127,8 @@ hc_production_schools |>
 
 **Based on what you see above, brainstorm 2-3 story angles:**
 
-1. "Pipeline Powerhouses" this would include focusing on schools like Mississippi State and Wake Forest, which produce the most future head coaches. It would be interesting to explore what makes these orgrams consistent deployers and determine if it is majority networking opportunities
-2. "Mid-Major Movers" this could highlight mid programs and discuss how these schools provide unique oppurtunities for assistants to fevelop leadearship skills and move up the ranks
+1. "Pipeline Powerhouses" this would include focusing on schools like Mississippi State and Wake Forest, which produce the most future head coaches. It would be interesting to explore what makes these programs consistent deployers and determine if it is majority networking opportunities
+2. "Mid-Major Movers" this could highlight mid programs and discuss how these schools provide unique opportunities for assistants to develop leadearship skills and move up the ranks
 3. "Regional Coaching Trends" this would look at whether certain regions or areas dominate the production of future head coaches. Are schools in the Southeast or Northeast disproportionately represented? And we would tie it to recruiting patterns, conference strength, and historical coaching networks  
 
 **Questions to consider:**
