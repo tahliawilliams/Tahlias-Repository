@@ -716,6 +716,6 @@ Now that you've worked through these analyses, what other questions could this d
 
 **Your ideas:**
 
-1. Look at whether coaches who start as Staff vs Assistant Coaches reach coaching positions faster or slower 
+1. We should look at whether coaches who start as Staff vs Assistant Coaches reach coaching positions faster or slower 
 2. Analyze gender or diversity patterns among mentors and proteges to see if certain programs or coaching trees are more inclusive
 3. Examine outliers in career timelines, like coaches who reached D1 head coach quickly or took unusually long 
