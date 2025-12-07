@@ -1,0 +1,451 @@
+---
+title: "How Does a Quarterback's Passing Performance Quartile Relate to Team Success During the 2024 NFL Season?"
+author: "Tahlia Williams"
+date: '2025-12-06'
+image: "image.png"
+format: 
+  html:
+    code-fold: true
+---
+
+Quarterbacks have been under greater pressure than any other position in football's history.  Quarterbacks are frequently given credit for victories and blamed for defeats, from late-game drives to pivotal moments in a season.  However, football is the best team sport.  No matter how good a quarterback is, protection, play-calling, receivers, defense, and a host of other elements are still crucial to success. That raises a question: do stronger quarterback performances actually translate into more team wins? This project uses a broader approach rather than concentrating on individual players or raw numbers.  In a number of important statistics, quarterbacks from the 2024 NFL season were divided into three performance quartiles, worst, middle, and best. This examines the true relationship between quarterback play and team success by comparing these quarterback performance levels with team win percentages.
+
+```{r}
+
+## I started by loading official NFL data from the 2024 season, which included complete team schedules, play-by-play information, and individual quarterback statistics.  This made it possible for me to establish a direct link between quarterback performance and league-wide club results.
+
+library(nflverse)  
+library(tidyverse)
+library(lubridate)
+library(ggrepel)
+library(scales)
+library(broom)
+set.seed(2025)
+
+qb_stats_2024 <- nflreadr::load_player_stats(seasons = 2024) |> filter(position_group == "QB")
+
+## Loading Play by Play for 2024 Season                                     
+pbp_2024 <- nflfastR::load_pbp(seasons = 2024)
+
+
+### Wins and Losses
+skeds <- load_schedules(2024)
+standings<- calculate_standings(skeds)
+view(standings)
+```
+
+Quarterbacks don’t all play the same number of games. Some miss time due to injury and some step in as backups for only a few weeks. Using raw season totals would unfairly favor players who played more games. To solve this, I converted every quarterback’s season totals into per-game averages and filtered out anyone who appeared in fewer than five games. This ensured the analysis reflected consistent contributors.
+
+```{r}
+qb_passing_totals <- qb_stats_2024 |> 
+  group_by(player_id, player_display_name) |> 
+  summarise(
+    total_completions = sum(completions, na.rm = TRUE),
+    total_attempts = sum(attempts, na.rm = TRUE),
+    total_games = n_distinct(week),
+    completion_percentage = total_completions / total_attempts,
+    completions_per_game = total_completions / total_games
+  ) |> 
+  ungroup() |> 
+  filter(total_games >= 5)
+completion_quantiles <- quantile(
+  qb_passing_totals$completions_per_game,
+  probs = c(0.25, 0.5, 0.75),
+  na.rm = TRUE
+)
+
+## After figuring out per-game averages, I separated quarterbacks into three groups according to the number of completions per game. The lowest completion volume in the worst quartile.  Average range in the middle quartile.  Highest completion volume in the best quartile. This makes it easier to compare performance across the league than ranking each of the 53 quarterbacks separately.
+
+q25 <- completion_quantiles[1]
+q75 <- completion_quantiles[3]
+
+qb_passing_totals <- qb_passing_totals |> 
+  mutate(
+    completions_quartile = case_when(
+      completions_per_game < q25 ~ "worst",
+      completions_per_game >= q25 & completions_per_game <= q75 ~ "middle",
+      completions_per_game > q75 ~ "best"
+    )
+  )
+
+## This creates a better consistent metric to compare quarterbacks fairly 
+
+## Instead of ranking quarterbacks individually, I grouped them into worst, middle, and best quartiles based on their copletion per game, allowing me to compare performances rather than individual players 
+
+library(ggplot2)
+
+ggplot(qb_passing_totals, aes(x = fct_reorder(player_display_name, completions_per_game), 
+                              y = completions_per_game, fill = completions_quartile)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_manual(values = c("worst"="red", "middle"="orange", "best"="green")) +
+  labs(title = "Completions per Game by Quartile", x = "Quarterback", y = "Completions/Game", fill = "Quartile") +
+  theme_minimal()
+
+library(ggbeeswarm)
+
+ggplot(qb_passing_totals, aes(x = completions_quartile, y = completions_per_game, color = completions_quartile)) +
+  geom_beeswarm(size = 3) +
+  scale_color_manual(values = c("worst"="red", "middle"="orange", "best"="green")) +
+  labs(title = "Completions per Game Distribution by Quartile", x = "Quartile", y = "Completions/Game") +
+  theme_minimal()
+
+
+
+```
+
+This graph shows how quarterbacks are classified into quartiles based on their average completions per game, revealing a distinct performance hierarchy.  Quarterbacks in the top quartile, highlighted in green, routinely complete the most passes per game.  Players such as Joe Burrow, Tua Tagovailoa, Patrick Mahomes, and Baker Mayfield lead this group, showing high-volume, effective passing offenses.  These quarterbacks  work in systems that rely primarily on the passing game, generate regular drives, and keep their attacks on the field—all of which contribute to overall team success. The middle quartile, represented in orange, includes a diverse group of quarterbacks who complete an average number of throws every game.  This group includes more average or inconsistent passes.  Some players, like Jared Goff or Kyler Murray, perform at high levels occasionally but do not consistently reach the top quartile in terms of completion volume.  Others in this group play in more run-heavy schemes or have suffered injuries, reducing their passing opportunities.  Teams in this quartile have mixed standings with some finish with winning records, while others do not which reflects the leagues diversity. The bottom quartile, marked in red, includes quarterbacks with the fewest completions per game.  These include backups, rookies, and struggling starters like Mitchell Trubisky, Kenny Pickett, Justin Fields, and Clayton Tune.  Low completion percentages can indicate ineffective offensive performance, conservative play-calling, inexperience, or poor accuracy.  Additionally, many quarterbacks in this quartile played on losing teams, demonstrating how low passing production is directly linked to team troubles.
+
+
+```{r}
+##QUARTERBACK PASSING TOUCHDOWNS. While touchdowns determine results, completions give a portion of the narrative.  I next looked at passing touchdowns per game and divided quarterbacks into the worst, middle, and top quartiles .Touchdowns are the ultimate payoff in football, turning completions into points. So, I shifted focus to passing touchdowns per game, again dividing the quarterbacks into quartiles. This metric revealed who was consistently delivering the goods versus those fumbling at the goal line.
+
+
+qb_passing_tds <- qb_stats_2024 |> 
+  filter(position_group == "QB") |> 
+  group_by(player_id, player_display_name) |> 
+  summarise(
+    total_games = n(),
+    total_passing_tds = sum(passing_tds, na.rm = TRUE),
+    passing_tds_per_game = total_passing_tds / total_games
+  ) |> 
+  filter(total_games >= 5)
+
+td_quantiles <- quantile(qb_passing_tds$passing_tds_per_game, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+q25_td <- td_quantiles[1]
+q75_td <- td_quantiles[3]
+
+
+qb_passing_tds <- qb_passing_tds |> 
+  mutate(
+    td_quartile = case_when(
+      passing_tds_per_game < q25_td ~ "worst",
+      passing_tds_per_game >= q25_td & passing_tds_per_game <= q75_td ~ "middle",
+      passing_tds_per_game > q75_td ~ "best"
+    )
+  )
+
+
+ggplot(qb_passing_tds, aes(x = td_quartile, y = passing_tds_per_game, fill = td_quartile)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("worst"="red", "middle"="orange", "best"="green")) +
+  labs(title = "Passing TDs per Game by Quartile", x = "Quartile", y = "TDs/Game") +
+  theme_minimal()
+
+```
+This visualization highlights how frequently quarterbacks in each tier directly contribute to scoring. While middle-tier quarterbacks remain tightly grouped, the best quartile separates clearly at the top.
+
+```{r}
+## QB INTERCEPTIONS. Not all quarterback plays help their team. Interceptions swing momentum and often decide games. Because lower interception rates are better, the quartile assignments for this metric were reversed.
+
+qb_interceptions <- qb_stats_2024 |> 
+  filter(position_group == "QB") |> 
+  group_by(player_id, player_display_name) |> 
+  summarise(
+    total_games = n(),
+    total_interceptions = sum(passing_interceptions, na.rm = TRUE),
+    interceptions_per_game = total_interceptions / total_games
+  ) |> 
+  filter(total_games >= 5)
+
+# Quartiles for interceptions per game (lower is better)
+int_quantiles <- quantile(qb_interceptions$interceptions_per_game, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+q25_int <- int_quantiles[1]
+q75_int <- int_quantiles[3]
+
+# Assign quartile labels
+qb_interceptions <- qb_interceptions |> 
+  mutate(
+    int_quartile = case_when(
+      interceptions_per_game > q75_int ~ "worst",  # more INTs = worse
+      interceptions_per_game <= q75_int & interceptions_per_game >= q25_int ~ "middle",
+      interceptions_per_game < q25_int ~ "best"
+    )
+  )
+
+ggplot(qb_interceptions, aes(x = fct_reorder(player_display_name, interceptions_per_game), 
+                             y = interceptions_per_game, fill = int_quartile)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_manual(values = c("worst"="red", "middle"="orange", "best"="green")) +
+  labs(title = "Interceptions per Game by Quartile", x = "Quarterback", y = "INTs/Game", fill = "Quartile") +
+  theme_minimal()
+
+```
+This graph shows how quarterbacks are distributed among quartiles based on interceptions per game, showing a completely different pattern than the completions and touchdowns charts.  In this scenario, quarterbacks in the worst quartile (highlighted in red) throw the most interceptions per game.  Kirk Cousins, Jameis Winston, Anthony Richardson, and Joe Flacco have been the leading interception players, averaging or exceeding nearly one each game.  This category comprises quarterbacks who either take greater chances, struggle with accuracy, or play in systems that put them in high-pressure throwing situations.  High interception percentages frequently delay drives, affect offensive momentum, and place defenses in tough field situations, all of which correlate with losing records. The middle quartile, highlighted in orange, includes a large number of quarterbacks with moderate interception rates.  These players typically throw 0.3 to 0.6 interceptions each game, showing poor ball security.  This quartile includes both veteran starters and youngsters, such as Jared Goff, Baker Mayfield, Drake Maye, Jordan Love, and Daniel Jones.  This category represents a variety of playing styles with some quarterbacks being generally efficient yet prone to occasional errors, while others are inexperienced or erratic.  Teams with quarterbacks in the middle quartile have varying levels of success, demonstrating that interception rates alone cannot entirely predict a team's performance but do play an important influence. The best quartile, shown in green, consists of quarterbacks who throw the fewest interceptions per game.  This group includes players like Josh Allen, Jalen Hurts, Lamar Jackson, and Justin Fields, who all had extraordinarily low interception rates.  Quarterbacks in this quartile are efficient decision-makers who protect the ball and reduce turnovers, which are critical components of outstanding offensive play.  Low interception rates help to sustain drives, boost scoring opportunities, and relieve pressure on the defense.  Unsurprisingly, many of the quarterbacks in this quartile play for competitive, winning teams. 
+```{r}
+## QUARTERPACK FANTASY. Football fantasy scoring combines passing yards, touchdowns, and turnovers into one overall performance metric, this offers a helpful all-in-one quarterback production metric, despite its flaws.
+qb_fantasy <- qb_stats_2024 |> 
+  filter(position_group == "QB") |> 
+  group_by(player_id, player_display_name) |> 
+  summarise(
+    total_games = n(),
+    total_fantasy_points = sum(fantasy_points, na.rm = TRUE),
+    fantasy_points_per_game = total_fantasy_points / total_games
+  ) |>  
+  filter(total_games >= 5)
+
+# Quartiles for fantasy points per game
+fantasy_quantiles <- quantile(qb_fantasy$fantasy_points_per_game, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+q25_fantasy <- fantasy_quantiles[1]
+q75_fantasy <- fantasy_quantiles[3]
+
+# Assign quartile labels
+qb_fantasy <- qb_fantasy  |>
+  mutate(
+    fantasy_quartile = case_when(
+      fantasy_points_per_game < q25_fantasy ~ "worst",
+      fantasy_points_per_game >= q25_fantasy & fantasy_points_per_game <= q75_fantasy ~ "middle",
+      fantasy_points_per_game > q75_fantasy ~ "best"
+    )
+  )
+
+ggplot(qb_fantasy, aes(x = fct_reorder(player_display_name, fantasy_points_per_game), 
+                       y = fantasy_points_per_game, fill = fantasy_quartile)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_manual(values = c("worst"="red", "middle"="orange", "best"="green")) +
+  labs(title = "Fantasy Points per Game by Quartile", x = "Quarterback", y = "Fantasy Pts/Game", fill = "Quartile") +
+  theme_minimal()
+
+```
+Fantasy quartiles offer another lens through which to compare quarterback performance beyond traditional box score stats.
+
+```{r}
+## COMBINING IT ALL. To understand how each quarterback performed across all four key metrics, I merged completions, touchdowns, interceptions, and fantasy scoring into a single dataset.
+qb_all <- qb_passing_totals  |> 
+  select(player_id, player_display_name, completions_per_game, completions_quartile)  |> 
+  rename(completions_quartile = completions_quartile)  |> 
+  left_join(
+    qb_passing_tds  |>   select(player_id, passing_tds_per_game, td_quartile),
+    by = "player_id"
+  )  |>
+  left_join(
+    qb_interceptions  |>   select(player_id, interceptions_per_game, int_quartile),
+    by = "player_id"
+  )  |> 
+  left_join(
+    qb_fantasy  |>  select(player_id, fantasy_points_per_game, fantasy_quartile),
+    by = "player_id"
+  )
+```
+
+
+```{r}
+## Team Level QB Averages. Quarterbacks win games as members of teams. To account for that, I calculated team-level quarterback averages by linking each quarterback’s stats to their respective team’s schedule and results.
+
+team_qb_stats <- skeds  |>  
+  left_join(qb_all, by = c("home_qb_name" = "player_display_name"))  |>  
+  rename(home_completions_per_game = completions_per_game,
+         home_qb_td_per_game = passing_tds_per_game,
+         home_qb_int_per_game = interceptions_per_game,
+         home_qb_fantasy_per_game = fantasy_points_per_game)  |> 
+  group_by(home_team)  |> 
+  summarise(
+    home_qb_completions_per_game = mean(home_completions_per_game, na.rm = TRUE),
+    home_qb_td_per_game = mean(home_qb_td_per_game, na.rm = TRUE),
+    home_qb_int_per_game = mean(home_qb_int_per_game, na.rm = TRUE),
+    home_qb_fantasy_per_game = mean(home_qb_fantasy_per_game, na.rm = TRUE)
+  )  |>  
+  rename(team = home_team)
+
+team_qb_stats
+
+team_all <- standings |>  left_join(team_qb_stats, by = "team") 
+
+td_quantiles <- quantile(team_all$home_qb_td_per_game, probs = c(0.25, 0.5, 0.75), na.rm = TRUE) 
+
+team_all <- team_all  |>
+  mutate(
+    qb_td_quartile = case_when(
+      home_qb_td_per_game < td_quantiles[1] ~ "worst",
+      home_qb_td_per_game <= td_quantiles[3] & home_qb_td_per_game >= td_quantiles[1] ~ "middle",
+      home_qb_td_per_game > td_quantiles[3] ~ "best"
+    )
+  )
+
+
+team_quantiles <- quantile(team_all$win_pct, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+
+q25_team <- team_quantiles[1]
+q75_team <- team_quantiles[3]
+
+team_all <- team_all  |>
+  mutate(
+    team_quartile = case_when(
+      win_pct < q25_team ~ "worst",       # low win |>  = worst
+      win_pct >= q25_team & win_pct <= q75_team ~ "middle",
+      win_pct > q75_team ~ "best"         # high win |>  = best
+    )
+  )
+```
+
+
+
+
+```{r}
+
+library(ggplot2)
+library(dplyr)
+library(forcats)
+
+qb_team <- skeds  |> 
+  select(player_id = home_qb_id, team = home_team)  |>   
+  distinct()
+
+
+qb_wins <- qb_all  |>
+  left_join(qb_team, by = "player_id")  |> 
+  left_join(standings  |>  select(team, wins), by = "team")  |> 
+  filter(!is.na(wins))
+
+
+ggplot(qb_wins, aes(x = wins, y = fct_reorder(player_display_name, wins))) +
+  geom_col(fill = "steelblue") +
+  theme_minimal() +
+  labs(
+    title = "Number of Wins per QB (2024 Season)",
+    x = "Team Wins",
+    y = "Quarterback"
+  )
+
+
+```
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(forcats)
+
+assign_quartile <- function(x, higher_is_better = TRUE) {
+  q <- quantile(x, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+  if(higher_is_better) {
+    case_when(
+      x < q[1] ~ "worst",
+      x >= q[1] & x <= q[3] ~ "middle",
+      x > q[3] ~ "best"
+    )
+  } else {  # lower is better (for interceptions)
+    case_when(
+      x > q[3] ~ "worst",
+      x <= q[3] & x >= q[1] ~ "middle",
+      x < q[1] ~ "best"
+    )
+  }
+}
+
+qb_all <- qb_all  |> 
+  mutate(
+    completions_quartile = assign_quartile(completions_per_game),
+    tds_quartile = assign_quartile(passing_tds_per_game),
+    ints_quartile = assign_quartile(interceptions_per_game, higher_is_better = FALSE),
+    fantasy_quartile = assign_quartile(fantasy_points_per_game)
+  )
+
+plot_by_quartile <- function(df, stat_col, quartile_col, title) {
+  ggplot(df, aes(x = fct_reorder(player_display_name, !!sym(stat_col)), 
+                 y = !!sym(stat_col), fill = !!sym(quartile_col))) +
+    geom_col() +
+    coord_flip() +
+    scale_fill_manual(values = c("worst" = "red", "middle" = "orange", "best" = "green")) +
+    labs(title = title, x = "Quarterback", y = stat_col, fill = "Quartile") +
+    theme_minimal()
+}
+
+
+plot_completions <- plot_by_quartile(qb_all, "completions_per_game", "completions_quartile", "Completions per Game by Quartile")
+plot_tds <- plot_by_quartile(qb_all, "passing_tds_per_game", "tds_quartile", "Passing TDs per Game by Quartile")
+plot_ints <- plot_by_quartile(qb_all, "interceptions_per_game", "ints_quartile", "Interceptions per Game by Quartile")
+plot_fantasy <- plot_by_quartile(qb_all, "fantasy_points_per_game", "fantasy_quartile", "Fantasy Points per Game by Quartile")
+
+plot_completions
+plot_tds
+plot_ints
+plot_fantasy
+
+```
+
+```{r}
+ggplot(team_all, aes(x = fct_reorder(team, win_pct), y = win_pct, fill = qb_td_quartile)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_manual(values = c("worst"="red", "middle"="orange", "best"="green")) +
+  labs(title = "Team Win %  vs. QB TD Quartile", x = "Team", y = "Win % ", fill = "QB TD Quartile") +
+  theme_minimal()
+
+ggplot(team_all, aes(x = home_qb_td_per_game, y = win_pct, color = qb_td_quartile)) +
+  geom_point(size = 3) +
+  scale_color_manual(values = c("worst"="red", "middle"="orange", "best"="green")) +
+  labs(title = "Team Win  |>  vs. QB TDs per Game", x = "QB TDs/Game", y = "Team Win  |> ") +
+  theme_minimal()
+
+```
+This graph demonstrates a significant correlation between quarterback touchdown productivity and team success.  Teams in the top touchdown quartile (green) virtually always have winning records—examples include Detroit, Philadelphia, Minnesota, Buffalo, and Miami, demonstrating how high-scoring quarterbacks routinely drive victories by keeping offenses efficient and productive. Teams in the middle quartile (orange) produce mixed results.  Some teams, such as the Chargers, Packers, and Steelers, continue to finish above.500, while others suffer.  This implies that mediocre quarterback touchdown performance can still lead to success if other factors (defense, run game, or coaching) compensate.Overall, the graph shows that touchdown production is one of the most powerful predictors of team success.  Top-quartile teams win the most, bottom-quartile teams lose the most, and the middle is unpredictable depending on squad strength and overall team balance.
+
+
+```{r}
+qb_heat <- qb_all  |> 
+  pivot_longer(
+    cols = c(completions_quartile, tds_quartile, ints_quartile, fantasy_quartile),
+    names_to = "stat",
+    values_to = "quartile"
+  )
+
+qb_heat <- qb_heat  |> 
+  mutate(quartile_num = case_when(
+    quartile == "best" ~ 3,
+    quartile == "middle" ~ 2,
+    quartile == "worst" ~ 1
+  ))
+
+ggplot(qb_heat, aes(x = stat, y = fct_reorder(player_display_name, quartile_num), fill = quartile)) +
+  geom_tile(color = "white") +
+  scale_fill_manual(values = c("worst" = "red", "middle" = "orange", "best" = "green")) +
+  labs(title = "QB Performance Heatmap by Quartile", x = "Stat", y = "Quarterback") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+```
+The heatmap shows a clear divide between the NFL’s top-performing quarterbacks and those who struggled. Quarterbacks near the top consistently fall into the best quartiles for completions, touchdowns, and fantasy production, showing that high accuracy and scoring output often go together. These players tend to be reliable across multiple categories rather than excelling in just one area. Quarterbacks near the bottom appear more often in the worst quartiles, especially for completions and touchdowns, and frequently rank poorly in interceptions as well. This suggests that struggling quarterbacks often face both low production and higher turnover risk. While some high-producing quarterbacks still fall into weaker interception quartiles, the overall pattern shows that consistent performance across multiple metrics is what separates elite quarterbacks from the rest.
+
+```{r}
+team_qb_scaled <- team_qb_stats |>
+  mutate(
+    z_completions = scale(home_qb_completions_per_game)[,1],
+    z_tds = scale(home_qb_td_per_game)[,1],
+    z_ints = scale(-home_qb_int_per_game)[,1],  
+    z_fantasy = scale(home_qb_fantasy_per_game)[,1]
+  )
+team_qb_scaled <- team_qb_scaled |>
+  mutate(
+    qb_composite_score = z_completions + z_tds + z_ints + z_fantasy
+  )
+team_qb_ranked <- team_qb_scaled |>
+  arrange(desc(qb_composite_score)) |>
+  mutate(qb_rank = row_number())
+
+team_qb_ranked
+team_qb_final <- team_qb_ranked |>
+  left_join(team_all |> select(team, win_pct), by = "team")
+
+team_qb_final
+
+team_qb_scaled |> 
+  pivot_longer(cols = starts_with("z_"), names_to = "stat", values_to = "value") |> 
+  ggplot(aes(x = fct_reorder(team, qb_composite_score), y = value, fill = stat)) +
+  geom_col() +
+  coord_flip() +
+  theme_minimal() +
+  labs(
+    title = "Component Breakdown of QB Composite Score",
+    x = "Team",
+    y = "Scaled Value",
+    fill = "Stat"
+  )
+
+```
+To compare teams more directly, I created a single composite quarterback performance score for every team. Since completions, touchdowns, interceptions, and fantasy points all operate on different scales, each stat was first standardized using z-scores. Interceptions were reversed so that fewer turnovers increased a team’s score. These four standardized metrics were then summed into one composite quarterback score for each team. This produced a clear league-wide ranking of quarterback performance strength, allowing teams to be compared directly against one another using a single numeric value.
+
+## Conclusion 
+The results demonstrate a substantial positive correlation between quarterback performance and team success in the 2024 NFL season.  Teams with quarterbacks ranked in the top composite quartile (based on completions, touchdowns, interceptions, and overall fantasy effectiveness) had consistently successful seasons.  Baltimore, Buffalo, Detroit, and Kansas City were all in the top 10 for composite quarterback performance, finishing far above .500.  These teams not only ran efficient and explosive passing systems, but their quarterbacks also had high touchdown rates and low turnover rates, which contributed significantly to long-term offensive success.  The idea is that superior quarterback performance corresponds directly with better winning rates. Teams with quarterbacks in the lowest performance quartile, on the other hand, performed poorly.  The lowest-ranked teams, like Tennessee, New England, Carolina, and Cleveland, have some of the league's worst passing numbers, including low completion percentages, low touchdown productivity, and high interception rates.  These indicators resulted in some of the season's lowest winning percentages, with several teams in this quartile finishing below .300.  The fact that so many bottom-ranked quarterbacks played for last or close to last teams supports the idea that poor passing performance is a strong predictor of overall team failure. Teams with quarterbacks in the middle quartiles had significantly more fluctuation in their win percentages.  These teams frequently had average or slightly above-average records, showing the inconsistent steadiness of their passing performance.  While some teams in this group had winning seasons thanks to strong defenses, coaching, or run games, others finished below .500 because their quarterback play lacked the consistency required to create consistent offensive productivity.  This variability demonstrates that when a quarterback's performance is neither exceptional nor awful, external factors such as roster depth, injuries, and defensive ability have a higher impact on a team's overall record. The composite quarterback score calculated from standardized Z-scores proved to be an accurate predictor of team outcomes.  As clubs advanced in the QB composite rating, their winning percentages often climbed in a near-linear manner.  Passing touchdowns and fantasy efficiency, both measures of good offensive production, contributed significantly to better composite scores, but high interception totals were highly associated with lower scores and losing seasons.  The data clearly show that quarterback performance is not only one aspect impacting team success, but one of the most crucial statistical markers of whether a club will finish with a winning record. Overall, the findings indicate that a quarterback's passing performance quartile significantly influences team success.  Teams with top-quartile quarterbacks win more frequently, teams with bottom-quartile quarterbacks consistently lose, and teams in the center have a mixed bag of results based on extra team strengths or shortcomings.  The findings support the idea that, while football is essentially a team sport, quarterback throwing performance is still one of the most powerful predictors of NFL success.  In the 2024 season, the quality of a team's quarterback play was a determining factor in whether it succeeded or failed.
